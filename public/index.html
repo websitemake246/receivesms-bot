@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TempMail — Disposable Email QZZ.IO</title>
+  <style>
+    :root {
+      --bg: #0b0e17;
+      --panel: rgba(17, 22, 40, 0.85);
+      --accent: #7df9ff;
+      --accent2: #ff4ecb;
+      --text: #e8f3ff;
+      --muted: #8fa6c5;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: ui-sans-serif, -apple-system, "Segoe UI", Inter, "Helvetica Neue", Arial, sans-serif;
+      min-height: 100vh;
+      background-image:
+        radial-gradient( at 10% 0%, rgba(125, 249, 255, .25) 0px, transparent 45vw),
+        radial-gradient( at 90% 100%, rgba(255, 78, 203, .22) 0px, transparent 45vw);
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(10px) saturate(150%);
+      -webkit-backdrop-filter: blur(10px) saturate(150%);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .logo {
+      font-weight: 900;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #fff;
+      text-shadow: 0 0 20px rgba(125,249,255,0.6), 0 0 60px rgba(125,249,255,0.35);
+    }
+    .logo span { color: var(--accent); }
+    .domain {
+      font-size: 12px;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.25);
+      padding: 4px 8px;
+      border-radius: 9999px;
+      opacity: .95;
+    }
+    main { padding: 20px 18px 40px; }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+    @media (min-width: 800px) {
+      .grid { grid-template-columns: 380px 1fr; }
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% -30%, rgba(125,249,255,0.18), transparent 60%);
+      pointer-events: none;
+    }
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      position: relative;
+    }
+    .email-box {
+      position: relative;
+      background: #0d1321;
+      border: 1px solid rgba(125,249,255,0.35);
+      border-radius: 10px;
+      padding: 14px 12px;
+      font-size: 15px;
+      word-break: break-all;
+      color: #c7ffff;
+      box-shadow: 0 0 25px rgba(125,249,255,0.18);
+    }
+    .actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      position: relative;
+    }
+    button, .btn {
+      cursor: pointer;
+      appearance: none;
+      border: 0;
+      color: #00202a;
+      font-weight: 700;
+      padding: 10px 14px;
+      border-radius: 9999px;
+      background: linear-gradient(180deg, #cff6ff 0%, #7de 100%);
+      box-shadow: 0 0 20px rgba(125,249,255,0.45);
+      transition: transform .1s, box-shadow .15s;
+      font-size: 13px;
+    }
+    button:hover, .btn:hover { transform: translateY(-1px); box-shadow: 0 0 30px rgba(125,249,255,0.6); }
+    button.ghost {
+      background: transparent;
+      color: #cff6ff;
+      border: 1px solid #7de;
+      box-shadow: 0 0 10px rgba(125,249,255,0.2);
+    }
+    input, textarea {
+      width: 100%;
+      background: #0d1321;
+      border: 1px solid rgba(125,249,255,0.35);
+      color: #c7ffff;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      outline: none;
+    }
+    textarea { min-height: 110px; resize: vertical; }
+    label { display: block; color: var(--muted); font-size: 12px; margin: 6px 0; text-transform: uppercase; letter-spacing: .1em; }
+    .mail { padding: 12px; background: #0d1321; border: 1px solid rgba(125,249,255,0.12); border-radius: 10px; margin: 8px 0; cursor: pointer; transition: border-color .2s; }
+    .mail:hover { border-color: rgba(125,249,255,0.45); }
+    .from { color: #ff9bd6; font-weight: 700; }
+    .subject { color: #fff; font-weight: 700; margin: 2px 0; }
+    .meta { color: #7fa3bf; font-size: 12px; }
+    .empty { color: #6f869e; font-style: italic; padding: 8px 2px; font-size: 13px; }
+    .compose { display: grid; gap: 10px; }
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      color: #fff;
+      background: #ff4ecb;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      box-shadow: 0 0 10px rgba(255,78,203,0.4);
+    }
+    .toast {
+      position: fixed;
+      bottom: 18px;
+      right: 18px;
+      background: #0d1321;
+      border: 1px solid rgba(125,249,255,0.45);
+      color: #caffff;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      box-shadow: 0 0 25px rgba(125,249,255,0.25);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity .3s, transform .3s;
+      z-index: 100;
+    }
+    .toast.show { opacity: 1; transform: none; }
+    .section { display: none; }
+    .section.active { display: block; }
+    .nav {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      position: relative;
+    }
+    code { font-family: ui-monospace, Menlo, monospace; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">QZZ.IO <span>TempMail</span></div>
+    <div class="domain" id="domainBadge">Loading…</div>
+  </header>
+
+  <main>
+    <div class="grid">
+      <div class="panel">
+        <h2>Your Inbox</h2>
+        <div id="emailPlaceholder" style="color:#7fa3bf;font-size:13px;">No inbox yet — create one.</div>
+        <div id="emailBox" style="display:none;">
+          <div class="email-box" id="emailValue"></div>
+          <div class="actions">
+            <button id="btnCopy">Copy</button>
+            <button id="btnRefresh">Refresh</button>
+            <button id="btnNew" class="ghost">+ New inbox</button>
+          </div>
+        </div>
+        <div style="margin-top: 16px;">
+          <h2>Compose</h2>
+          <form id="composeForm" class="compose" autocomplete="off">
+            <label>To</label>
+            <input id="toAddr" placeholder="name@ikechukwuotis.qzz.io" required />
+            <label>Subject</label>
+            <input id="subj" placeholder="Verification code" required />
+            <label>From</label>
+            <input id="fromAddr" placeholder="you@example.com" />
+            <label>Message</label>
+            <textarea id="msgBody" placeholder="Your code is 123456" required></textarea>
+            <button type="submit">Send to inbox</button>
+          </form>
+        </div>
+        <div style="margin-top: 14px;">
+          <label>Create inboxes</label>
+          <button id="btnCreate">Generate QZZ.IO inbox</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="nav">
+          <button id="tabInbox">Inbox</button>
+          <button id="tabApi" class="ghost">API Docs</button>
+        </div>
+
+        <div id="secInbox" class="section active">
+          <h2>Messages</h2>
+          <button id="refreshBtn" style="background:rgba(125,249,255,0.15); color:#cff6ff; border:1px solid #7de;">↻ Refresh</button>
+          <div id="mailList"></div>
+        </div>
+
+        <div id="secApi" class="section">
+          <h2>REST API</h2>
+          <div style="font-size:13px; color:#c7ffff; white-space:pre; background:#0d1321; padding:12px; border-radius:10px; overflow:auto;">
+POST /api/create-inbox   {"name":"optional"}
+GET  /api/inboxes
+POST /api/send-email     {"to","subject","body","from"}
+GET  /api/messages/:inboxId
+GET  /api/domain
+GET  /api/public-messages
+
+Example:
+curl -X POST https://<host>/api/create-inbox
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast" class="toast">Copied!</div>
+
+  <script>
+    const API = '';
+    let currentInboxId = null;
+
+    function toast(msg, ms=1800) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), ms);
+    }
+
+    async function get(url) {
+      const r = await fetch(API + url);
+      return r.json();
+    }
+    async function post(url, body) {
+      const r = await fetch(API + url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body||{}) });
+      return r.json();
+    }
+
+    document.getElementById('btnCreate').addEventListener('click', async () => {
+      const data = await post('/api/create-inbox');
+      if (data.success) selectInbox(data);
+    });
+
+    async function selectInbox(data) {
+      currentInboxId = data.inboxId;
+      document.getElementById('emailPlaceholder').style.display = 'none';
+      const box = document.getElementById('emailBox'); box.style.display = 'block';
+      document.getElementById('emailValue').textContent = data.email;
+      await loadMessages();
+    }
+
+    async function loadMessages() {
+      if (!currentInboxId) return;
+      const data = await get('/api/messages/' + currentInboxId);
+      const list = document.getElementById('mailList');
+      list.innerHTML = '';
+      if (!data.messages || data.messages.length === 0) { list.innerHTML = '<div class="empty">No messages yet.</div>'; }
+      data.messages.forEach(m => {
+        const el = document.createElement('div');
+        el.className = 'mail';
+        el.innerHTML = `<div class="from">${esc(m.fromAddr)}</div><div class="subject">${esc(m.subject)}</div><div class="meta">${esc(m.date)} · ${esc(m.textBody || m.body).slice(0,80)}</div>`;
+        el.addEventListener('click', () => openMessage(m));
+        list.appendChild(el);
+      });
+    }
+
+    function esc(s) {
+      if (s == null) return '';
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function openMessage(m) {
+      const list = document.getElementById('mailList');
+      list.innerHTML = `
+        <div class="mail" style="border-color:rgba(125,249,255,0.45);">
+          <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+            <div class="from">${esc(m.fromAddr)}</div>
+            <button id="backBtn" class="ghost">← Back</button>
+          </div>
+          <div class="subject">${esc(m.subject)}</div>
+          <div class="meta">${esc(m.date)}</div>
+          <hr style="border:none; border-top:1px solid rgba(255,255,255,0.08); margin:10px 0;">
+          <div style="color:#caffff; white-space:pre-wrap; font-size:14px;">${esc(m.htmlBody || m.body)}</div>
+        </div>`;
+      document.getElementById('backBtn').addEventListener('click', loadMessages);
+    }
+
+    document.getElementById('btnRefresh').addEventListener('click', loadMessages);
+    document.getElementById('refreshBtn').addEventListener('click', loadMessages);
+    document.getElementById('btnNew').addEventListener('click', () => {
+      currentInboxId = null;
+      document.getElementById('emailBox').style.display = 'none';
+      document.getElementById('emailPlaceholder').style.display = 'block';
+      document.getElementById('mailList').innerHTML = '<div class="empty">No inbox selected.</div>';
+    });
+
+    document.getElementById('btnCopy').addEventListener('click', async () => {
+      const el = document.getElementById('emailValue');
+      try {
+        await navigator.clipboard.writeText(el.textContent);
+        toast('Copied!');
+      } catch (e) { toast('Copy failed'); }
+    });
+
+    document.getElementById('composeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = {
+        to: document.getElementById('toAddr').value,
+        subject: document.getElementById('subj').value,
+        body: document.getElementById('msgBody').value,
+        from: document.getElementById('fromAddr').value
+      };
+      const res = await post('/api/send-email', data);
+      toast(res.success ? 'Sent ✓' : ('Failed: ' + (res.error||'')));
+      if (res.success) e.target.reset();
+    });
+
+    document.getElementById('tabInbox').addEventListener('click', () => showTab('inbox'));
+    document.getElementById('tabApi').addEventListener('click', () => showTab('api'));
+    function showTab(which) {
+      ['Inbox','Api'].forEach(t => document.getElementById('sec'+t).classList.toggle('active', t.toLowerCase()===which));
+      document.getElementById('tabInbox').className = which==='inbox' ? '' : 'ghost';
+      document.getElementById('tabApi').className = which==='api' ? '' : 'ghost';
+    }
+
+    (async () => {
+      const d = await get('/api/domain');
+      document.getElementById('domainBadge').textContent = d.domain;
+    })();
+  </script>
+</body>
+</html>
